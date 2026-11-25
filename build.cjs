@@ -23,7 +23,10 @@ var result = babel.transformSync(source, {
     sourceType: 'script',
     presets: [[require.resolve('@babel/preset-env'), { targets: { node: '4.4.3' }, modules: false }]]
 });
-fs.writeFileSync(output, "if(typeof self==='undefined'){self=this;}\n" + result.code + '\n');
+fs.writeFileSync(output,
+    "if(typeof self==='undefined'){self=this;}if(typeof global==='undefined'){global=this;}\\n" +
+    result.code +
+    "\\nif(module&&module.exports&&typeof module.exports.onStart==='function'){module.exports.onStart();}\\n"
+);
 fs.unlinkSync(intermediate);
 console.log('Built Node 4.4.3 bundle: ' + output + ' (' + Buffer.byteLength(result.code, 'utf8') + ' bytes)');
-
