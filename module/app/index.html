@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Stremio TV Server</title>
+  <style>
+    html,body{margin:0;background:#10152b;color:#f5f7ff;font:24px Arial,sans-serif}
+    main{padding:5vh 6vw}h1{font-size:38px;color:#55d8ff}p{line-height:1.5}
+    code{color:#9dd6ff}#state{color:#86efac}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Stremio TV Server</h1>
+    <p id="state">Checking local service…</p>
+    <p>In the Stremio app, add <code>http://127.0.0.1:11470</code> as a streaming server.</p>
+    <p>Service and torrent connections run on this TV. This prototype uses a single active torrent and a temporary cache.</p>
+  </main>
+  <script>
+    (function(){var state=document.getElementById('state');
+      var xhr=new XMLHttpRequest();xhr.open('GET','http://127.0.0.1:11470/',true);
+      xhr.onreadystatechange=function(){if(xhr.readyState===4){state.textContent=xhr.status===200?'Server is running on this TV.':'Server service is not running.';}};
+      xhr.onerror=function(){state.textContent='Server service is not running.';};xhr.send();
+    }());
+  </script>
+</body>
+</html>
+
