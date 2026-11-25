@@ -10,8 +10,11 @@ fetch('https://cdn.jsdelivr.net/gh/bobshmo/stremio-tizenbrew-server/module/servi
         return response.text();
     })
     .then(function(source) {
-        (0, eval)("if(typeof global==='undefined'){global=this;}\n" + source +
-            "\nif(module&&module.exports&&typeof module.exports.onStart==='function'){module.exports.onStart();}");
+        var sandboxGlobal = Function('return this')();
+        sandboxGlobal.global = sandboxGlobal;
+        if (typeof sandboxGlobal.self === 'undefined') sandboxGlobal.self = sandboxGlobal;
+        eval(source +
+            "\\nif(module&&module.exports&&typeof module.exports.onStart==='function'){module.exports.onStart();}");
     })
     .catch(function(error) {
         console.log('Stremio service bootstrap failed: ' + (error && error.stack || error));
