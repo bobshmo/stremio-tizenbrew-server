@@ -1,8 +1,8 @@
 'use strict';
 
-// TizenBrew runs service modules inside a vm sandbox that omits Node's global
-// alias and does not call exported lifecycle hooks. Load the actual service
-// bundle, provide that alias, then start its exported server hook.
+// TizenBrew evaluates service modules in a vm sandbox, omits Node's global
+// alias, and does not call exported lifecycle hooks. The module's bundled
+// Node built-ins must resolve through the native Node module loader.
 var fetch = require('node-fetch');
 fetch('https://cdn.jsdelivr.net/gh/bobshmo/stremio-tizenbrew-server/module/service.bundle.js')
     .then(function(response) {
@@ -11,7 +11,11 @@ fetch('https://cdn.jsdelivr.net/gh/bobshmo/stremio-tizenbrew-server/module/servi
     })
     .then(function(source) {
         var sandboxGlobal = Function('return this')();
+        var nativeRequire = process.mainModule && process.mainModule.require
+            ? process.mainModule.require.bind(process.mainModule)
+            : require;
         sandboxGlobal.global = sandboxGlobal;
+        sandboxGlobal.require = nativeRequire;
         if (typeof sandboxGlobal.self === 'undefined') sandboxGlobal.self = sandboxGlobal;
         eval(source +
             "\\nif(module&&module.exports&&typeof module.exports.onStart==='function'){module.exports.onStart();}");
