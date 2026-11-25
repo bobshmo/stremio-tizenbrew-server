@@ -1,8 +1,7 @@
 'use strict';
 
 // TizenBrew evaluates service modules in an isolated VM and does not invoke
-// lifecycle hooks. Fetch and start the bundled Node service with a VM-local
-// Node 4 Buffer compatibility wrapper.
+// lifecycle hooks. Load and start the bundled Node service with Node 4 shims.
 var runtimeRequire = process.mainModule && process.mainModule.require
     ? process.mainModule.require.bind(process.mainModule)
     : require;
@@ -54,10 +53,30 @@ https.get('https://cdn.jsdelivr.net/gh/bobshmo/stremio-tizenbrew-server/module/s
             sandboxGlobal.require = sandboxRequire;
             if (typeof sandboxGlobal.self === 'undefined') sandboxGlobal.self = sandboxGlobal;
             eval(source);
+            diagnostics.exports = Object.keys(module.exports || {});
             if (module && module.exports && typeof module.exports.onStart === 'function') {
                 module.exports.onStart();
+                diagnostics.hasServer = !!module.exports.server;
+                diagnostics.listeningNow = !!(module.exports.server && module.exports.server.listening);
+                if (module.exports.server) {
+                    module.exports.server.on('listening', function() {
+                        diagnostics.listening = true;
+                        diagnostics.address = module.exports.server.address();
+                    });
+                    module.exports.server.on('error', function(error) {
+                        diagnostics.serverError = error && error.stack || String(error);
+                    });
+                }
+            } else {
+                diagnostics.noStartHook = true;
             }
             diagnostics.status = 'bundle-evaluated';
+            setTimeout(function() {
+                diagnostics.listeningAfterDelay = !!(module.exports.server && module.exports.server.listening);
+                if (module.exports.server && module.exports.server.address) {
+                    diagnostics.address = module.exports.server.address();
+                }
+            }, 1500);
         } catch (error) {
             diagnostics.status = 'failed';
             diagnostics.error = error && error.stack || String(error);
