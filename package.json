@@ -1,6 +1,6 @@
 {
   "name": "stremio-tizen-local-streaming-server",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A TizenBrew Node 4 service prototype for Stremio torrent streams",
   "packageType": "app",
   "appName": "Stremio TV Server",
